@@ -13,6 +13,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.GridLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +27,7 @@ import com.example.puzzlegame.models.Score;
 import com.example.puzzlegame.utils.SessionManager;
 import com.example.puzzlegame.utils.SoundManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +43,7 @@ public class GameActivity extends AppCompatActivity {
     private MaterialButton btnHint;
     private MaterialButton btnSettings;
 
-    private int[] board; // 0 = empty space
+    private int[] board;
     private int gridSize = 4;
     private int emptyIndex = 15;
     private int moves = 0;
@@ -65,13 +68,11 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        // Initialize managers
         sessionManager = new SessionManager(this);
         dbHelper = new DatabaseHelper(this);
         soundManager = new SoundManager(this);
         prefs = getSharedPreferences("PuzzleGamePrefs", Context.MODE_PRIVATE);
 
-        // Initialize views
         gridLayout = findViewById(R.id.gridLayout);
         tvMoves = findViewById(R.id.tvMoves);
         tvTimer = findViewById(R.id.tvTimer);
@@ -80,56 +81,193 @@ public class GameActivity extends AppCompatActivity {
         btnHint = findViewById(R.id.btnHint);
         btnSettings = findViewById(R.id.btnSettings);
 
-        // Initialize board and game
+        gridSize = sessionManager.getGridSize();
+
         initializeBoard();
         setupTimer();
         setupGrid();
         loadBestScore();
-
-        // Apply sound settings
         applySoundSettings();
 
-        // ============ BUTTON LISTENERS ============
+        // Test sound
+        testSound();
 
-        // Shuffle Button
-        btnShuffle.setOnClickListener(v -> shufflePuzzle());
-
-        // Hint Button
-        btnHint.setOnClickListener(v -> showHint());
-
-        // ============ FIXED SETTINGS BUTTON ============
-        btnSettings.setOnClickListener(v -> {
-            // Play click sound
-            soundManager.playClickSound();
-
-            // Create intent to open SettingsActivity
-            Intent intent = new Intent(GameActivity.this, SettingsActivity.class);
-            startActivity(intent);
+        btnShuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shufflePuzzle();
+            }
         });
 
-        // Show instructions on first launch
+        btnHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHint();
+            }
+        });
+
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showSettingsDialog();
+            }
+        });
+
         if (!prefs.getBoolean("instructions_shown", false)) {
             showInstructions();
             prefs.edit().putBoolean("instructions_shown", true).apply();
         }
 
-        // Start timer
         startTimer();
     }
 
-    // ============ APPLY SOUND SETTINGS ============
-    private void applySoundSettings() {
-        // Apply music setting
-        boolean musicEnabled = sessionManager.isMusicEnabled();
-        if (musicEnabled) {
-            soundManager.startBackgroundMusic();
-        } else {
-            soundManager.pauseBackgroundMusic();
-        }
+    // ============ SOUND TEST METHOD ============
+    private void testSound() {
+        try {
+            Toast.makeText(this, "Testing sound...", Toast.LENGTH_SHORT).show();
 
-        // Apply SFX setting
-        boolean sfxEnabled = sessionManager.isSfxEnabled();
-        soundManager.toggleSfx(sfxEnabled);
+            // Test click sound immediately
+            soundManager.playClickSound();
+
+            // Test slide sound after 500ms
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    soundManager.playSlideSound();
+                }
+            }, 500);
+
+            // Test win sound after 1000ms
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    soundManager.playWinSound();
+                }
+            }, 1000);
+
+            // Start background music
+            soundManager.startBackgroundMusic();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Sound test error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+    // ============ SETTINGS DIALOG ============
+    private void showSettingsDialog() {
+        try {
+            soundManager.playClickSound();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("⚙️ Settings");
+
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_settings, null);
+            builder.setView(dialogView);
+
+            // Get dialog views - Now using SwitchCompat
+            androidx.appcompat.widget.SwitchCompat switchMusic = dialogView.findViewById(R.id.dialogSwitchMusic);
+            androidx.appcompat.widget.SwitchCompat switchSfx = dialogView.findViewById(R.id.dialogSwitchSfx);
+            RadioGroup rgDifficulty = dialogView.findViewById(R.id.dialogRgDifficulty);
+            RadioButton rbEasy = dialogView.findViewById(R.id.dialogRbEasy);
+            RadioButton rbMedium = dialogView.findViewById(R.id.dialogRbMedium);
+            RadioButton rbHard = dialogView.findViewById(R.id.dialogRbHard);
+
+            // Get buttons
+            com.google.android.material.button.MaterialButton btnClose = dialogView.findViewById(R.id.dialogBtnClose);
+            com.google.android.material.button.MaterialButton btnLogout = dialogView.findViewById(R.id.dialogBtnLogout);
+
+            // Load current settings
+            switchMusic.setChecked(sessionManager.isMusicEnabled());
+            switchSfx.setChecked(sessionManager.isSfxEnabled());
+
+            int currentGridSize = sessionManager.getGridSize();
+            if (currentGridSize == 3) {
+                rbEasy.setChecked(true);
+            } else if (currentGridSize == 4) {
+                rbMedium.setChecked(true);
+            } else if (currentGridSize == 5) {
+                rbHard.setChecked(true);
+            }
+
+            // Music switch listener
+            switchMusic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                sessionManager.setMusicEnabled(isChecked);
+                applySoundSettings();
+                Toast.makeText(GameActivity.this, "Music " + (isChecked ? "enabled" : "disabled"), Toast.LENGTH_SHORT).show();
+            });
+
+            // Sound effects switch listener
+            switchSfx.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                sessionManager.setSfxEnabled(isChecked);
+                applySoundSettings();
+                Toast.makeText(GameActivity.this, "Sound effects " + (isChecked ? "enabled" : "disabled"), Toast.LENGTH_SHORT).show();
+            });
+
+            // Difficulty selection
+            rgDifficulty.setOnCheckedChangeListener((group, checkedId) -> {
+                int size = 4;
+                String difficulty = "Medium (4x4)";
+                if (checkedId == R.id.dialogRbEasy) {
+                    size = 3;
+                    difficulty = "Easy (3x3)";
+                } else if (checkedId == R.id.dialogRbMedium) {
+                    size = 4;
+                    difficulty = "Medium (4x4)";
+                } else if (checkedId == R.id.dialogRbHard) {
+                    size = 5;
+                    difficulty = "Hard (5x5)";
+                }
+                sessionManager.setGridSize(size);
+                Toast.makeText(GameActivity.this, "Difficulty: " + difficulty, Toast.LENGTH_SHORT).show();
+            });
+
+            // Create the dialog
+            AlertDialog dialog = builder.create();
+
+            // Close button
+            btnClose.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+
+            // Logout button
+            btnLogout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sessionManager.logout();
+                    Toast.makeText(GameActivity.this, "Logged out", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(GameActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+
+            dialog.show();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+    private void applySoundSettings() {
+        try {
+            boolean musicEnabled = sessionManager.isMusicEnabled();
+            boolean sfxEnabled = sessionManager.isSfxEnabled();
+
+            if (musicEnabled) {
+                soundManager.startBackgroundMusic();
+            } else {
+                soundManager.pauseBackgroundMusic();
+            }
+            soundManager.toggleSfx(sfxEnabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void initializeBoard() {
@@ -208,14 +346,18 @@ public class GameActivity extends AppCompatActivity {
             tile.setTextSize(tileSize * 0.35f);
             tile.setTypeface(null, android.graphics.Typeface.BOLD);
             tile.setPadding(4, 4, 4, 4);
+            tile.setTextColor(Color.WHITE);
 
             tileViews[position] = tile;
             updateTile(position);
 
             final int pos = position;
-            tile.setOnClickListener(v -> {
-                if (!isAnimating) {
-                    onTileClick(pos);
+            tile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!isAnimating) {
+                        onTileClick(pos);
+                    }
                 }
             });
 
@@ -251,48 +393,41 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void onTileClick(int position) {
-        // Don't allow moves if game is solved or animation is running
         if (gameSolved || isAnimating) {
             return;
         }
 
-        // Check if the clicked tile is adjacent to the empty space
         if (!isAdjacentToEmpty(position)) {
             Toast.makeText(this, "❌ Tile must be next to the empty space!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Valid move - animate the tile sliding into the empty space
         isAnimating = true;
-
-        // Get the empty position before swap
         final int oldEmptyIndex = emptyIndex;
         final int tileToMove = position;
 
-        // Animate the tile moving to the empty space position
-        animateTileMovement(tileViews[tileToMove], tileViews[oldEmptyIndex], () -> {
-            // Swap in board array
-            board[oldEmptyIndex] = board[tileToMove];
-            board[tileToMove] = 0;
-            emptyIndex = tileToMove;
+        animateTileMovement(tileViews[tileToMove], tileViews[oldEmptyIndex], new Runnable() {
+            @Override
+            public void run() {
+                board[oldEmptyIndex] = board[tileToMove];
+                board[tileToMove] = 0;
+                emptyIndex = tileToMove;
 
-            // Update UI
-            updateTile(tileToMove);
-            updateTile(oldEmptyIndex);
+                updateTile(tileToMove);
+                updateTile(oldEmptyIndex);
 
-            // Update move counter
-            moves++;
-            tvMoves.setText("Moves: " + moves);
+                moves++;
+                tvMoves.setText("Moves: " + moves);
 
-            isAnimating = false;
+                isAnimating = false;
 
-            // Check for win
-            if (isSolved()) {
-                onPuzzleSolved();
-            }
+                if (isSolved()) {
+                    onPuzzleSolved();
+                }
 
-            if (!isTimerRunning) {
-                startTimer();
+                if (!isTimerRunning) {
+                    startTimer();
+                }
             }
         });
     }
@@ -303,17 +438,14 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
 
-        // Get the current position of the tile and the target position
         float startX = tileToMove.getX();
         float startY = tileToMove.getY();
         float targetX = targetPosition.getX();
         float targetY = targetPosition.getY();
 
-        // Calculate the difference
         float deltaX = targetX - startX;
         float deltaY = targetY - startY;
 
-        // Animate the tile moving to the target position
         ObjectAnimator moveX = ObjectAnimator.ofFloat(tileToMove, "translationX", 0, deltaX);
         ObjectAnimator moveY = ObjectAnimator.ofFloat(tileToMove, "translationY", 0, deltaY);
 
@@ -328,7 +460,6 @@ public class GameActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                // Reset translation
                 tileToMove.setTranslationX(0);
                 tileToMove.setTranslationY(0);
                 if (onComplete != null) onComplete.run();
@@ -354,7 +485,6 @@ public class GameActivity extends AppCompatActivity {
         int tileRow = position / gridSize;
         int tileCol = position % gridSize;
 
-        // Check if adjacent (up, down, left, right) - NOT diagonal
         int rowDiff = Math.abs(tileRow - emptyRow);
         int colDiff = Math.abs(tileCol - emptyCol);
 
@@ -377,13 +507,11 @@ public class GameActivity extends AppCompatActivity {
             gameSolved = false;
         }
 
-        // Start from solved state
         for (int i = 0; i < board.length; i++) {
             board[i] = (i < board.length - 1) ? i + 1 : 0;
         }
         emptyIndex = board.length - 1;
 
-        // Perform random valid moves to shuffle (guarantees solvable)
         int shuffleCount = 200;
         int currentEmpty = emptyIndex;
 
@@ -398,7 +526,6 @@ public class GameActivity extends AppCompatActivity {
         }
         emptyIndex = currentEmpty;
 
-        // Make sure it's not solved
         if (isSolved()) {
             int temp = board[0];
             board[0] = board[1];
@@ -410,14 +537,13 @@ public class GameActivity extends AppCompatActivity {
         gameSolved = false;
         tvMoves.setText("Moves: 0");
         updateTimerDisplay();
-
         updateAllTiles();
 
         resetTimer();
         startTimer();
 
         soundManager.playClickSound();
-        Toast.makeText(this, "🔄 Puzzle shuffled! Tap tiles next to the empty space.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔄 Puzzle shuffled!", Toast.LENGTH_LONG).show();
     }
 
     private List<Integer> getNeighborIndices(int position) {
@@ -485,17 +611,11 @@ public class GameActivity extends AppCompatActivity {
         gameSolved = true;
         stopTimer();
         soundManager.playWinSound();
-
         celebrateWin();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("🎉 Puzzle Solved!");
-        builder.setMessage(
-                "Congratulations!\n\n" +
-                        "Moves: " + moves + "\n" +
-                        "Time: " + timerSeconds + " seconds\n\n" +
-                        "Great job!"
-        );
+        builder.setMessage("Congratulations!\n\nMoves: " + moves + "\nTime: " + timerSeconds + " seconds\n\nGreat job!");
         builder.setPositiveButton("Play Again", (dialog, which) -> shufflePuzzle());
         builder.setNegativeButton("Continue", (dialog, which) -> dialog.dismiss());
         builder.setCancelable(true);

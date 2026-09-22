@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
@@ -40,9 +39,10 @@
         <!-- Settings Activity - MAKE SURE THIS EXISTS -->
         <activity
             android:name=".activities.SettingsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:label="Settings" />
 
-        <!-- Main Activity (redirects to Login) -->
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />

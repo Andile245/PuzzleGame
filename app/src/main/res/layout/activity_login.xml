@@ -6,13 +6,13 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="24dp"
-    android:background="@android:color/white">
+    android:background="@color/light_gray">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="🧩 Puzzle Game"
-        android:textSize="32sp"
+        android:textSize="36sp"
         android:textStyle="bold"
         android:textColor="@color/purple_500"
         android:layout_marginBottom="48dp" />
@@ -21,20 +21,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:hint="Username"
+        app:hintTextColor="@color/purple_500"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
-            android:inputType="text" />
+            android:textColor="@color/black"
+            android:textColorHint="@color/dark_gray" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
+        android:hint="Password"
+        app:hintTextColor="@color/purple_500"
         app:passwordToggleEnabled="true"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -42,8 +46,9 @@
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:textColor="@color/black"
+            android:textColorHint="@color/dark_gray" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -52,7 +57,9 @@
         android:layout_height="56dp"
         android:text="LOGIN"
         android:textSize="16sp"
-        app:cornerRadius="8dp" />
+        android:textColor="@color/white"
+        app:cornerRadius="8dp"
+        app:backgroundTint="@color/purple_500" />
 
     <TextView
         android:id="@+id/tvRegisterLink"
@@ -69,8 +76,10 @@
         android:id="@+id/tvErrorMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#FF0000"
+        android:textColor="@color/red"
         android:textSize="14sp"
         android:visibility="gone"
         android:layout_marginTop="8dp" />
+
 </LinearLayout>
+    <!-- NOTHING AFTER THIS LINE! -->

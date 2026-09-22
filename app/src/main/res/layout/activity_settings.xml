@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/light_gray">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,46 +15,72 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Settings"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/purple_500"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="24dp" />
 
-        <!-- Sound Settings -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sound"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/dark_gray"
-            android:layout_marginBottom="12dp" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchMusic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Background Music"
-            android:checked="true"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchSfx"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sound Effects"
-            android:checked="true"
-            android:layout_marginBottom="24dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-        <!-- Difficulty Settings -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Background Music"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchMusic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Sound Effects"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchSfx"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+        </LinearLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Difficulty"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/dark_gray"
-            android:layout_marginBottom="12dp" />
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
 
         <RadioGroup
             android:id="@+id/rgDifficulty"
@@ -67,6 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Easy (3x3)"
+                android:textColor="@color/black"
                 android:layout_marginBottom="8dp" />
 
             <RadioButton
@@ -74,6 +101,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Medium (4x4)"
+                android:textColor="@color/black"
                 android:checked="true"
                 android:layout_marginBottom="8dp" />
 
@@ -81,10 +109,10 @@
                 android:id="@+id/rbHard"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hard (5x5)" />
+                android:text="Hard (5x5)"
+                android:textColor="@color/black" />
         </RadioGroup>
 
-        <!-- Logout Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"
@@ -93,8 +121,7 @@
             android:textSize="16sp"
             android:textColor="@android:color/white"
             app:cornerRadius="8dp"
-            app:backgroundTint="#FF0000"
-            android:layout_marginTop="16dp" />
+            app:backgroundTint="@color/red" />
 
         <TextView
             android:id="@+id/tvCurrentUser"
@@ -103,7 +130,8 @@
             android:text="Logged in as: "
             android:textSize="14sp"
             android:layout_marginTop="16dp"
-            android:textColor="@android:color/darker_gray" />
+            android:textColor="@color/black" />
 
     </LinearLayout>
 </ScrollView>
+    <!-- NOTHING AFTER THIS LINE! -->

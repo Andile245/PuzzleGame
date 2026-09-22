@@ -8,16 +8,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.puzzlegame.R;
 import com.example.puzzlegame.utils.SessionManager;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private MaterialSwitch switchMusic;
-    private MaterialSwitch switchSfx;
+    private SwitchCompat switchMusic;
+    private SwitchCompat switchSfx;
     private RadioGroup rgDifficulty;
     private RadioButton rbEasy;
     private RadioButton rbMedium;
@@ -33,7 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        // Initialize views
+        // Initialize views - Now using SwitchCompat
         switchMusic = findViewById(R.id.switchMusic);
         switchSfx = findViewById(R.id.switchSfx);
         rgDifficulty = findViewById(R.id.rgDifficulty);
@@ -113,7 +113,6 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        // Go back to GameActivity
         Intent intent = new Intent(SettingsActivity.this, GameActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
